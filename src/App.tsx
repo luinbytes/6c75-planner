@@ -1,13 +1,30 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
+import { HistoryItem } from './types';
+import { commandHandler } from './services/commandHandler';
 
 const App = () => {
   const [input, setInput] = useState('');
-  const [history, setHistory] = useState<Array<{ type: 'command' | 'output', content: string }>>([]);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
 
   const handleCommand = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && input.trim()) {
-      setHistory(prev => [...prev, { type: 'command', content: input }]);
+      const timestamp = new Date().toISOString();
+      const command = input.trim();
+      
+      setHistory(prev => [...prev, { 
+        type: 'command', 
+        content: command,
+        timestamp 
+      }]);
+
+      const response = commandHandler.executeCommand(command);
+      setHistory(prev => [...prev, { 
+        type: 'output', 
+        content: response.message,
+        timestamp: new Date().toISOString()
+      }]);
+
       setInput('');
     }
   };
@@ -23,6 +40,7 @@ const App = () => {
         >
           <h1 className="text-2xl font-medium mb-1">6c75-planner</h1>
           <p className="text-[rgba(var(--terminal-green),0.6)] text-sm">Welcome to your CLI task manager</p>
+          <p className="text-[rgba(var(--terminal-green),0.6)] text-sm">Type 'help' for available commands</p>
         </motion.div>
 
         <div className="space-y-0.5 mb-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
@@ -41,7 +59,7 @@ const App = () => {
                 }`}
               >
                 <span className="opacity-50 select-none">{item.type === 'command' ? '>' : '·'}</span>
-                <span>{item.content}</span>
+                <span className="whitespace-pre-wrap">{item.content}</span>
               </motion.div>
             ))}
           </AnimatePresence>
