@@ -1,0 +1,121 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --terminal-green: 163, 190, 140;
+    --terminal-background: 20, 20, 25;
+    --terminal-glow: 0 0 1px rgba(163, 190, 140, 0.2);
+  }
+
+  html {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    letter-spacing: -0.025em;
+    font-feature-settings: "liga" 1, "calt" 1, "ss01" 1, "ss02" 1, "ss03" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+.terminal-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0;
+  margin: 0;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgb(var(--terminal-green));
+  caret-color: rgb(var(--terminal-green));
+}
+
+.terminal-input::placeholder {
+  color: rgba(var(--terminal-green), 0.4);
+  opacity: 1;
+}
+
+.terminal-input:focus {
+  outline: none;
+  box-shadow: none;
+  border: none;
+  ring: none;
+}
+
+body {
+  color: rgb(var(--terminal-green));
+  background: rgb(var(--terminal-background));
+  text-rendering: optimizeLegibility;
+  min-height: 100vh;
+  background: linear-gradient(
+    170deg,
+    rgb(var(--terminal-background)),
+    rgb(25, 25, 30)
+  );
+}
+
+@keyframes cursor-blink {
+  0%, 100% { 
+    opacity: 1;
+    text-shadow: var(--terminal-glow);
+  }
+  50% { 
+    opacity: 0.5;
+    text-shadow: none;
+  }
+}
+
+.terminal-cursor::after {
+  content: '▊';
+  margin-left: 2px;
+  animation: cursor-blink 1s infinite;
+  color: rgb(var(--terminal-green));
+  text-shadow: var(--terminal-glow);
+}
+
+.command-line {
+  position: relative;
+  padding: 0.25rem 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.command-line:hover {
+  background: rgba(var(--terminal-green), 0.03);
+}
+
+.terminal-window {
+  border: 1px solid rgba(var(--terminal-green), 0.1);
+  border-radius: 0.5rem;
+  background: rgba(var(--terminal-background), 0.7);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(var(--terminal-green), 0.1);
+  border-radius: 1.5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--terminal-green), 0.2);
+}
+
+.glow-text {
+  text-shadow: var(--terminal-glow);
+} 
