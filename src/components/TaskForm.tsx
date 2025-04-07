@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Calendar } from "@/components/ui/calendar"
+import { motion, AnimatePresence } from "framer-motion"
 import {
   Select,
   SelectContent,
@@ -22,17 +23,108 @@ import {
 } from "@/components/ui/dialog"
 import { Task, Priority, TaskStatus } from "@/types/task"
 import { addTask, updateTask } from "@/lib/storage"
-import { Plus, Pencil, Clock, Calendar as CalendarIcon } from "lucide-react"
+import { Plus, Pencil, Clock, Calendar as CalendarIcon, ArrowLeft, ArrowRight, Check } from "lucide-react"
 
 interface TaskFormProps {
   task?: Task
   onSuccess?: () => void
 }
 
+interface StepProps {
+  children: React.ReactNode
+  onNext: () => void
+  onBack?: () => void
+  canProgress: boolean
+  isLastStep?: boolean
+}
+
+function FormStep({ children, onNext, onBack, canProgress, isLastStep }: StepProps) {
+  return (
+    <motion.div
+      initial={{ x: 100, opacity: 0, scale: 0.95 }}
+      animate={{ 
+        x: 0, 
+        opacity: 1, 
+        scale: 1,
+        transition: {
+          type: "spring",
+          stiffness: 100,
+          damping: 20,
+          mass: 1
+        }
+      }}
+      exit={{ 
+        x: -100, 
+        opacity: 0, 
+        scale: 0.95,
+        transition: {
+          type: "spring",
+          stiffness: 100,
+          damping: 20,
+          mass: 1
+        }
+      }}
+      className="space-y-4"
+    >
+      <motion.div 
+        className="min-h-[300px] flex flex-col"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ 
+          y: 0, 
+          opacity: 1,
+          transition: {
+            delay: 0.1,
+            duration: 0.3
+          }
+        }}
+      >
+        {children}
+      </motion.div>
+      <motion.div 
+        className="flex justify-between pt-4"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ 
+          y: 0, 
+          opacity: 1,
+          transition: {
+            delay: 0.2,
+            duration: 0.3
+          }
+        }}
+      >
+        {onBack ? (
+          <Button type="button" variant="outline" onClick={onBack}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+        ) : <div />}
+        <Button 
+          type="button" 
+          onClick={onNext} 
+          disabled={!canProgress}
+        >
+          {isLastStep ? (
+            <>
+              Create Task
+              <Check className="h-4 w-4 ml-2" />
+            </>
+          ) : (
+            <>
+              Next
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </>
+          )}
+        </Button>
+      </motion.div>
+    </motion.div>
+  )
+}
+
 export function TaskForm({ task, onSuccess }: TaskFormProps) {
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
   const [open, setOpen] = useState(false)
+  const [step, setStep] = useState(0)
   const [formData, setFormData] = useState<Partial<Task>>({
     title: "",
     description: "",
@@ -58,8 +150,7 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
     }
   }, [task])
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = () => {
     if (!formData.title) return
 
     if (task) {
@@ -69,9 +160,13 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
     }
 
     setOpen(false)
+    setStep(0)
     onSuccess?.()
     router.refresh()
   }
+
+  const nextStep = () => setStep(s => s + 1)
+  const prevStep = () => setStep(s => s - 1)
 
   if (!mounted) return null
 
@@ -89,51 +184,48 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
     archived: "No longer relevant",
   }
 
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {task ? (
-          <Button variant="ghost" size="icon">
-            <Pencil className="h-5 w-5" />
-          </Button>
-        ) : (
-          <Button>
-            <Plus className="h-5 w-5 mr-2" />
-            Add Task
-          </Button>
-        )}
-      </DialogTrigger>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">
-            {task ? "Update Task Details" : "Let's Create a New Task"}
-          </DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-lg font-medium">What would you like to accomplish?</label>
+  const steps = [
+    // Step 1: Title
+    {
+      content: (
+        <FormStep onNext={nextStep} canProgress={!!formData.title}>
+          <div className="flex-1">
+            <h2 className="text-2xl font-semibold mb-8">What would you like to accomplish?</h2>
             <Input
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="Enter a clear and specific task title..."
               className="text-lg"
-              required
+              autoFocus
             />
           </div>
-
-          <div className="space-y-2">
-            <label className="text-lg font-medium">Could you provide more details?</label>
+        </FormStep>
+      ),
+    },
+    // Step 2: Description
+    {
+      content: (
+        <FormStep onNext={nextStep} onBack={prevStep} canProgress={true}>
+          <div className="flex-1">
+            <h2 className="text-2xl font-semibold mb-8">Could you provide more details?</h2>
             <Textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Add any additional information that might help you complete this task..."
-              className="min-h-[100px]"
+              className="min-h-[200px] text-lg"
+              autoFocus
             />
           </div>
-
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-lg font-medium">How urgent is this task?</label>
+        </FormStep>
+      ),
+    },
+    // Step 3: Priority & Status
+    {
+      content: (
+        <FormStep onNext={nextStep} onBack={prevStep} canProgress={true}>
+          <div className="flex-1 space-y-8">
+            <div>
+              <h2 className="text-2xl font-semibold mb-4">How urgent is this task?</h2>
               <Select
                 value={formData.priority}
                 onValueChange={(value: Priority) => setFormData({ ...formData, priority: value })}
@@ -153,9 +245,8 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
                 </SelectContent>
               </Select>
             </div>
-
-            <div className="space-y-2">
-              <label className="text-lg font-medium">What's the current status?</label>
+            <div>
+              <h2 className="text-2xl font-semibold mb-4">What's the current status?</h2>
               <Select
                 value={formData.status}
                 onValueChange={(value: TaskStatus) => setFormData({ ...formData, status: value })}
@@ -176,54 +267,91 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
               </Select>
             </div>
           </div>
-
-          <div className="space-y-2">
-            <label className="text-lg font-medium flex items-center gap-2">
-              <CalendarIcon className="h-5 w-5" />
+        </FormStep>
+      ),
+    },
+    // Step 4: Due Date
+    {
+      content: (
+        <FormStep onNext={nextStep} onBack={prevStep} canProgress={true}>
+          <div className="flex-1">
+            <h2 className="text-2xl font-semibold mb-8 flex items-center gap-2">
+              <CalendarIcon className="h-6 w-6" />
               When does this need to be done?
-            </label>
+            </h2>
             <Calendar
               mode="single"
               selected={formData.dueDate}
               onSelect={(date) => setFormData({ ...formData, dueDate: date })}
-              className="rounded-md border"
+              className="rounded-md border mx-auto"
               initialFocus
             />
           </div>
-
-          <div className="space-y-2">
-            <label className="text-lg font-medium flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              How long do you think it will take?
-            </label>
-            <Input
-              type="number"
-              value={formData.estimatedTime}
-              onChange={(e) => setFormData({ ...formData, estimatedTime: Number(e.target.value) })}
-              placeholder="Estimate in minutes..."
-              className="text-lg"
-            />
+        </FormStep>
+      ),
+    },
+    // Step 5: Estimated Time & Notes
+    {
+      content: (
+        <FormStep onNext={handleSubmit} onBack={prevStep} canProgress={true} isLastStep>
+          <div className="flex-1 space-y-8">
+            <div>
+              <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
+                <Clock className="h-6 w-6" />
+                How long do you think it will take?
+              </h2>
+              <Input
+                type="number"
+                value={formData.estimatedTime}
+                onChange={(e) => setFormData({ ...formData, estimatedTime: Number(e.target.value) })}
+                placeholder="Estimate in minutes..."
+                className="text-lg"
+                autoFocus
+              />
+            </div>
+            <div>
+              <h2 className="text-2xl font-semibold mb-4">Any additional notes or reminders?</h2>
+              <Textarea
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                placeholder="Add any helpful notes, links, or reminders..."
+                className="min-h-[100px] text-lg"
+              />
+            </div>
           </div>
+        </FormStep>
+      ),
+    },
+  ]
 
-          <div className="space-y-2">
-            <label className="text-lg font-medium">Any additional notes or reminders?</label>
-            <Textarea
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Add any helpful notes, links, or reminders..."
-              className="min-h-[80px]"
-            />
-          </div>
-
-          <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Maybe Later
-            </Button>
-            <Button type="submit">
-              {task ? "Save Changes" : "Create Task"} 
-            </Button>
-          </div>
-        </form>
+  return (
+    <Dialog open={open} onOpenChange={(newOpen) => {
+      setOpen(newOpen)
+      if (!newOpen) setStep(0)
+    }}>
+      <DialogTrigger asChild>
+        {task ? (
+          <Button variant="ghost" size="icon">
+            <Pencil className="h-5 w-5" />
+          </Button>
+        ) : (
+          <Button>
+            <Plus className="h-5 w-5 mr-2" />
+            Add Task
+          </Button>
+        )}
+      </DialogTrigger>
+      <DialogContent className="max-w-xl overflow-hidden">
+        <DialogHeader>
+          <DialogTitle className="text-2xl">
+            {task ? "Update Task Details" : "Create New Task"}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="mt-4">
+          <AnimatePresence mode="wait" initial={false}>
+            {steps[step].content}
+          </AnimatePresence>
+        </div>
       </DialogContent>
     </Dialog>
   )
