@@ -41,40 +41,37 @@ interface StepProps {
 function FormStep({ children, onNext, onBack, canProgress, isLastStep }: StepProps) {
   return (
     <motion.div
-      initial={{ x: 100, opacity: 0, scale: 0.95 }}
+      initial={{ x: "100%", opacity: 0 }}
       animate={{ 
         x: 0, 
-        opacity: 1, 
-        scale: 1,
+        opacity: 1,
         transition: {
           type: "spring",
-          stiffness: 100,
-          damping: 20,
-          mass: 1
+          stiffness: 80,
+          damping: 20
         }
       }}
       exit={{ 
-        x: -100, 
-        opacity: 0, 
-        scale: 0.95,
+        x: "-100%", 
+        opacity: 0,
         transition: {
           type: "spring",
-          stiffness: 100,
-          damping: 20,
-          mass: 1
+          stiffness: 80,
+          damping: 20
         }
       }}
-      className="space-y-4"
+      className="space-y-4 w-full"
     >
       <motion.div 
-        className="min-h-[300px] flex flex-col"
+        className="flex flex-col"
         initial={{ y: 20, opacity: 0 }}
         animate={{ 
           y: 0, 
           opacity: 1,
           transition: {
-            delay: 0.1,
-            duration: 0.3
+            delay: 0.2,
+            duration: 0.3,
+            ease: "easeOut"
           }
         }}
       >
@@ -87,8 +84,9 @@ function FormStep({ children, onNext, onBack, canProgress, isLastStep }: StepPro
           y: 0, 
           opacity: 1,
           transition: {
-            delay: 0.2,
-            duration: 0.3
+            delay: 0.3,
+            duration: 0.3,
+            ease: "easeOut"
           }
         }}
       >
@@ -189,56 +187,58 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
     {
       content: (
         <FormStep onNext={nextStep} canProgress={!!formData.title}>
-          <div className="flex-1">
-            <h2 className="text-2xl font-semibold mb-8">What would you like to accomplish?</h2>
+          <div className="w-full">
+            <h2 className="text-2xl font-semibold mb-6">What would you like to accomplish?</h2>
             <Input
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="Enter a clear and specific task title..."
-              className="text-lg"
+              className="text-lg w-full"
               autoFocus
             />
           </div>
         </FormStep>
       ),
+      width: "sm"
     },
     // Step 2: Description
     {
       content: (
         <FormStep onNext={nextStep} onBack={prevStep} canProgress={true}>
-          <div className="flex-1">
-            <h2 className="text-2xl font-semibold mb-8">Could you provide more details?</h2>
+          <div className="w-full">
+            <h2 className="text-2xl font-semibold mb-6">Could you provide more details?</h2>
             <Textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Add any additional information that might help you complete this task..."
-              className="min-h-[200px] text-lg"
+              className="min-h-[200px] text-lg w-full"
               autoFocus
             />
           </div>
         </FormStep>
       ),
+      width: "md"
     },
     // Step 3: Priority & Status
     {
       content: (
         <FormStep onNext={nextStep} onBack={prevStep} canProgress={true}>
-          <div className="flex-1 space-y-8">
+          <div className="w-full space-y-8">
             <div>
               <h2 className="text-2xl font-semibold mb-4">How urgent is this task?</h2>
               <Select
                 value={formData.priority}
                 onValueChange={(value: Priority) => setFormData({ ...formData, priority: value })}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select priority level" />
+                <SelectTrigger className="w-full text-left min-h-[2.5rem]">
+                  <SelectValue placeholder="Select priority level" className="py-1" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="w-[var(--radix-select-trigger-width)] min-w-[200px]">
                   {Object.entries(priorityLabels).map(([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      <div className="space-y-1">
+                    <SelectItem key={value} value={value} className="py-1.5">
+                      <div className="space-y-0.1">
                         <div className="font-medium capitalize">{value}</div>
-                        <div className="text-xs text-muted-foreground">{label}</div>
+                        <div className="text-xs text-muted-foreground whitespace-normal">{label}</div>
                       </div>
                     </SelectItem>
                   ))}
@@ -251,15 +251,15 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
                 value={formData.status}
                 onValueChange={(value: TaskStatus) => setFormData({ ...formData, status: value })}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select current status" />
+                <SelectTrigger className="w-full text-left min-h-[2.5rem]">
+                  <SelectValue placeholder="Select current status" className="py-1" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="w-[var(--radix-select-trigger-width)] min-w-[200px]">
                   {Object.entries(statusLabels).map(([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      <div className="space-y-1">
+                    <SelectItem key={value} value={value} className="py-1.5">
+                      <div className="space-y-0.1">
                         <div className="font-medium capitalize">{value.replace("-", " ")}</div>
-                        <div className="text-xs text-muted-foreground">{label}</div>
+                        <div className="text-xs text-muted-foreground whitespace-normal">{label}</div>
                       </div>
                     </SelectItem>
                   ))}
@@ -269,13 +269,14 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
           </div>
         </FormStep>
       ),
+      width: "sm"
     },
     // Step 4: Due Date
     {
       content: (
         <FormStep onNext={nextStep} onBack={prevStep} canProgress={true}>
-          <div className="flex-1">
-            <h2 className="text-2xl font-semibold mb-8 flex items-center gap-2">
+          <div className="w-full flex flex-col items-center">
+            <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
               <CalendarIcon className="h-6 w-6" />
               When does this need to be done?
             </h2>
@@ -283,18 +284,19 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
               mode="single"
               selected={formData.dueDate}
               onSelect={(date) => setFormData({ ...formData, dueDate: date })}
-              className="rounded-md border mx-auto"
+              className="rounded-md border"
               initialFocus
             />
           </div>
         </FormStep>
       ),
+      width: "sm"
     },
     // Step 5: Estimated Time & Notes
     {
       content: (
         <FormStep onNext={handleSubmit} onBack={prevStep} canProgress={true} isLastStep>
-          <div className="flex-1 space-y-8">
+          <div className="w-full space-y-8">
             <div>
               <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
                 <Clock className="h-6 w-6" />
@@ -305,7 +307,7 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
                 value={formData.estimatedTime}
                 onChange={(e) => setFormData({ ...formData, estimatedTime: Number(e.target.value) })}
                 placeholder="Estimate in minutes..."
-                className="text-lg"
+                className="text-lg w-full"
                 autoFocus
               />
             </div>
@@ -315,12 +317,13 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 placeholder="Add any helpful notes, links, or reminders..."
-                className="min-h-[100px] text-lg"
+                className="min-h-[100px] text-lg w-full"
               />
             </div>
           </div>
         </FormStep>
       ),
+      width: "md"
     },
   ]
 
@@ -341,17 +344,30 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-xl overflow-hidden">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">
-            {task ? "Update Task Details" : "Create New Task"}
-          </DialogTitle>
-        </DialogHeader>
-        <div className="mt-4">
-          <AnimatePresence mode="wait" initial={false}>
-            {steps[step].content}
-          </AnimatePresence>
-        </div>
+      <DialogContent className={`overflow-hidden ${steps[step].width === "sm" ? "max-w-md" : "max-w-2xl"}`}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ 
+            opacity: 1, 
+            y: 0,
+            transition: {
+              duration: 0.3,
+              ease: "easeOut"
+            }
+          }}
+          className="w-full"
+        >
+          <DialogHeader>
+            <DialogTitle className="text-2xl">
+              {task ? "Update Task Details" : "Create New Task"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-6 w-full">
+            <AnimatePresence mode="wait" initial={false}>
+              {steps[step].content}
+            </AnimatePresence>
+          </div>
+        </motion.div>
       </DialogContent>
     </Dialog>
   )
