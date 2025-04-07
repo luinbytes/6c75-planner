@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dialog"
 import { Task, Priority, TaskStatus } from "@/types/task"
 import { addTask, updateTask } from "@/lib/storage"
-import { Plus, Pencil } from "lucide-react"
+import { Plus, Pencil, Clock, Calendar as CalendarIcon } from "lucide-react"
 
 interface TaskFormProps {
   task?: Task
@@ -75,6 +75,20 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
 
   if (!mounted) return null
 
+  const priorityLabels = {
+    low: "Not urgent, can wait",
+    medium: "Should be done soon",
+    high: "Important and time-sensitive",
+    urgent: "Needs immediate attention",
+  }
+
+  const statusLabels = {
+    todo: "Not started yet",
+    "in-progress": "Currently working on it",
+    completed: "Already finished",
+    archived: "No longer relevant",
+  }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -91,101 +105,122 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{task ? "Edit Task" : "Create New Task"}</DialogTitle>
+          <DialogTitle className="text-2xl">
+            {task ? "Update Task Details" : "Let's Create a New Task"}
+          </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Title</label>
+            <label className="text-lg font-medium">What would you like to accomplish?</label>
             <Input
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="Task title"
+              placeholder="Enter a clear and specific task title..."
+              className="text-lg"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Description</label>
+            <label className="text-lg font-medium">Could you provide more details?</label>
             <Textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Task description"
+              placeholder="Add any additional information that might help you complete this task..."
+              className="min-h-[100px]"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Priority</label>
+              <label className="text-lg font-medium">How urgent is this task?</label>
               <Select
                 value={formData.priority}
                 onValueChange={(value: Priority) => setFormData({ ...formData, priority: value })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select priority" />
+                  <SelectValue placeholder="Select priority level" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
+                  {Object.entries(priorityLabels).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      <div className="space-y-1">
+                        <div className="font-medium capitalize">{value}</div>
+                        <div className="text-xs text-muted-foreground">{label}</div>
+                      </div>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Status</label>
+              <label className="text-lg font-medium">What's the current status?</label>
               <Select
                 value={formData.status}
                 onValueChange={(value: TaskStatus) => setFormData({ ...formData, status: value })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
+                  <SelectValue placeholder="Select current status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="todo">To Do</SelectItem>
-                  <SelectItem value="in-progress">In Progress</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="archived">Archived</SelectItem>
+                  {Object.entries(statusLabels).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      <div className="space-y-1">
+                        <div className="font-medium capitalize">{value.replace("-", " ")}</div>
+                        <div className="text-xs text-muted-foreground">{label}</div>
+                      </div>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Due Date</label>
+            <label className="text-lg font-medium flex items-center gap-2">
+              <CalendarIcon className="h-5 w-5" />
+              When does this need to be done?
+            </label>
             <Calendar
               mode="single"
               selected={formData.dueDate}
               onSelect={(date) => setFormData({ ...formData, dueDate: date })}
               className="rounded-md border"
+              initialFocus
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Estimated Time (minutes)</label>
+            <label className="text-lg font-medium flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              How long do you think it will take?
+            </label>
             <Input
               type="number"
               value={formData.estimatedTime}
               onChange={(e) => setFormData({ ...formData, estimatedTime: Number(e.target.value) })}
-              placeholder="Estimated time in minutes"
+              placeholder="Estimate in minutes..."
+              className="text-lg"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Notes</label>
+            <label className="text-lg font-medium">Any additional notes or reminders?</label>
             <Textarea
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Additional notes"
+              placeholder="Add any helpful notes, links, or reminders..."
+              className="min-h-[80px]"
             />
           </div>
 
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Cancel
+              Maybe Later
             </Button>
             <Button type="submit">
-              {task ? "Update" : "Create"} Task
+              {task ? "Save Changes" : "Create Task"} 
             </Button>
           </div>
         </form>

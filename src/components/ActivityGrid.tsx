@@ -2,16 +2,48 @@
 
 import React, { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
+import { loadTasks } from "@/lib/storage"
+import { format, subDays, isSameDay } from "date-fns"
 
 const DAYS_IN_WEEK = 7
 const WEEKS_TO_SHOW = 52
 
-function generateRandomData(): number[] {
-  const data: number[] = []
-  for (let i = 0; i < WEEKS_TO_SHOW * DAYS_IN_WEEK; i++) {
-    data.push(Math.floor(Math.random() * 4)) // 0-3 levels of activity
+function getActivityData(): number[] {
+  if (typeof window === "undefined") return new Array(WEEKS_TO_SHOW * DAYS_IN_WEEK).fill(0)
+  
+  try {
+    const tasks = loadTasks()
+    const data: number[] = new Array(WEEKS_TO_SHOW * DAYS_IN_WEEK).fill(0)
+    const today = new Date()
+
+    // Count completed tasks for each day
+    tasks.forEach(task => {
+      if (task.status === "completed" && task.updatedAt) {
+        const completedDate = new Date(task.updatedAt)
+        const daysAgo = Math.floor((today.getTime() - completedDate.getTime()) / (1000 * 60 * 60 * 24))
+        
+        if (daysAgo >= 0 && daysAgo < WEEKS_TO_SHOW * DAYS_IN_WEEK) {
+          data[daysAgo]++
+        }
+      }
+    })
+
+    // Normalize the data to 0-3 range
+    const max = Math.max(...data)
+    if (max > 0) {
+      return data.map(count => {
+        if (count === 0) return 0
+        if (count <= max / 3) return 1
+        if (count <= (max * 2) / 3) return 2
+        return 3
+      })
+    }
+
+    return data
+  } catch (error) {
+    console.error('Error loading activity data:', error)
+    return new Array(WEEKS_TO_SHOW * DAYS_IN_WEEK).fill(0)
   }
-  return data
 }
 
 const activityLevels = [
@@ -22,13 +54,15 @@ const activityLevels = [
 ]
 
 export function ActivityGrid() {
+  const [mounted, setMounted] = useState(false)
   const [activityData, setActivityData] = useState<number[]>([])
 
   useEffect(() => {
-    setActivityData(generateRandomData())
+    setMounted(true)
+    setActivityData(getActivityData())
   }, [])
 
-  if (activityData.length === 0) {
+  if (!mounted || activityData.length === 0) {
     return (
       <Card className="p-6">
         <h2 className="text-2xl font-semibold mb-4">Activity</h2>
@@ -46,16 +80,29 @@ export function ActivityGrid() {
             {Array.from({ length: DAYS_IN_WEEK }).map((_, dayIndex) => {
               const dataIndex = weekIndex * DAYS_IN_WEEK + dayIndex
               const level = activityData[dataIndex]
+              const date = subDays(new Date(), (WEEKS_TO_SHOW * DAYS_IN_WEEK - 1) - dataIndex)
+              const formattedDate = format(date, 'MMM d, yyyy')
+              const completions = level === 0 ? "No" : level === 1 ? "Few" : level === 2 ? "Several" : "Many"
+              
               return (
                 <div
                   key={dayIndex}
                   className={`w-3 h-3 rounded-sm ${activityLevels[level]}`}
-                  title={`Activity level ${level + 1}`}
+                  title={`${completions} tasks completed on ${formattedDate}`}
                 />
               )
             })}
           </div>
         ))}
+      </div>
+      <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+        <span>Less</span>
+        <div className="flex gap-1">
+          {activityLevels.map((level, i) => (
+            <div key={i} className={`w-3 h-3 rounded-sm ${level}`} />
+          ))}
+        </div>
+        <span>More</span>
       </div>
     </Card>
   )
