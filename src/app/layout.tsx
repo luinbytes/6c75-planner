@@ -21,16 +21,18 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
-          <div className="fixed top-4 right-4">
-            <ThemeToggle />
+          <div className="min-h-screen relative">
+            <main className="min-h-screen bg-background">
+              {children}
+            </main>
+            <div className="fixed bottom-4 right-4">
+              <ThemeToggle className="h-10" />
+            </div>
           </div>
-          <main className="min-h-screen bg-background">
-            {children}
-          </main>
         </ThemeProvider>
       </body>
     </html>
