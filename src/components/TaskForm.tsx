@@ -19,12 +19,13 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog"
 import { Task } from "@/types/task"
 import { addTask, updateTask } from "@/lib/storage"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import { Pencil, Plus } from "lucide-react"
+import { Pencil, Plus, X } from "lucide-react"
 import { format } from "date-fns"
 
 interface TaskFormProps {
@@ -50,11 +51,16 @@ export function TaskForm({ task, onSuccess, useAutoUrgency = false }: TaskFormPr
     return {
       title: task?.title || "",
       description: task?.description || "",
-      dueDate: task?.dueDate || tomorrow.toISOString().split('T')[0],
+      dueDate: task?.dueDate,
       priority: task?.priority || "medium",
       status: task?.status || "todo",
       time: task?.time,
       estimatedTime: task?.estimatedTime,
+      tags: task?.tags || [],
+      subtasks: task?.subtasks || [],
+      notes: task?.notes || "",
+      actualTime: task?.actualTime,
+      recurring: task?.recurring
     }
   })
 
@@ -147,56 +153,12 @@ export function TaskForm({ task, onSuccess, useAutoUrgency = false }: TaskFormPr
             <Label>When is this due?</Label>
             <Calendar
               mode="single"
-              selected={formData.dueDate ? new Date(formData.dueDate) : undefined}
-              onSelect={(date) => setFormData({ ...formData, dueDate: date })}
+              selected={formData.dueDate}
+              onSelect={(date) => setFormData({ ...formData, dueDate: date || undefined })}
               className="rounded-md border"
+              disabled={(date) => date < new Date(new Date().setDate(new Date().getDate() - 1))}
             />
           </div>
-          {formData.dueDate && (
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="enable-time"
-                  checked={!!formData.time}
-                  onCheckedChange={(checked) => {
-                    setFormData({
-                      ...formData,
-                      time: checked ? { hour: 0, minute: 0 } : undefined
-                    })
-                  }}
-                />
-                <Label htmlFor="enable-time">Add specific time</Label>
-              </div>
-              {formData.time && (
-                <div className="flex gap-2">
-                  <Input
-                    type="number"
-                    min="0"
-                    max="23"
-                    placeholder="HH"
-                    value={formData.time?.hour ?? ""}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      time: { ...formData.time, hour: parseInt(e.target.value) }
-                    })}
-                    className="w-20"
-                  />
-                  <Input
-                    type="number"
-                    min="0"
-                    max="59"
-                    placeholder="MM"
-                    value={formData.time?.minute ?? ""}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      time: { ...formData.time, minute: parseInt(e.target.value) }
-                    })}
-                    className="w-20"
-                  />
-                </div>
-              )}
-            </div>
-          )}
         </div>
       )
     },
@@ -224,10 +186,10 @@ export function TaskForm({ task, onSuccess, useAutoUrgency = false }: TaskFormPr
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="low">I can do this whenever, no rush</SelectItem>
-                  <SelectItem value="medium">I'd like to get this done this week</SelectItem>
-                  <SelectItem value="high">This needs to be done in the next few days</SelectItem>
-                  <SelectItem value="urgent">This needs my attention today</SelectItem>
+                  <SelectItem value="urgent">Urgent</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="low">Low</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -236,24 +198,51 @@ export function TaskForm({ task, onSuccess, useAutoUrgency = false }: TaskFormPr
       )
     },
     {
-      title: "Summary",
+      title: "Time Estimate & Status",
       content: (
         <div className="space-y-4">
           <div className="space-y-2">
-            <h3 className="font-medium">Task Details</h3>
-            <div className="space-y-1">
-              <p><span className="font-medium">Title:</span> {formData.title}</p>
-              {formData.description && (
-                <p><span className="font-medium">Description:</span> {formData.description}</p>
-              )}
-              {formData.dueDate && (
-                <p>
-                  <span className="font-medium">Due Date:</span> {format(new Date(formData.dueDate), "MMM d, yyyy")}
-                  {formData.time && ` at ${String(formData.time.hour).padStart(2, '0')}:${String(formData.time.minute).padStart(2, '0')}`}
-                </p>
-              )}
-              <p><span className="font-medium">Priority:</span> {formData.priority}</p>
-            </div>
+            <Label htmlFor="estimatedTime">Estimated time (minutes)</Label>
+            <Input
+              id="estimatedTime"
+              type="number"
+              value={formData.estimatedTime || ''}
+              onChange={(e) => setFormData({ ...formData, estimatedTime: parseInt(e.target.value) || undefined })}
+              placeholder="e.g., 30"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Current Status</Label>
+            <Select
+              value={formData.status}
+              onValueChange={(value: Task["status"]) => setFormData({ ...formData, status: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todo">To Do</SelectItem>
+                <SelectItem value="in-progress">In Progress</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="archived">Archived</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      )
+    },
+    {
+      title: "Summary",
+      content: (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Task Summary</h3>
+          <div className="space-y-1 text-sm">
+            <p><strong>Title:</strong> {formData.title || "-"}</p>
+            <p><strong>Description:</strong> {formData.description || "-"}</p>
+            <p><strong>Due:</strong> {formData.dueDate ? format(formData.dueDate, "PPP") : "-"}</p>
+            <p><strong>Priority:</strong> {formData.priority || "-"}</p>
+            <p><strong>Estimate:</strong> {formData.estimatedTime ? `${formData.estimatedTime} min` : "-"}</p>
+            <p><strong>Status:</strong> {formData.status || "-"}</p>
           </div>
         </div>
       )
@@ -306,18 +295,9 @@ export function TaskForm({ task, onSuccess, useAutoUrgency = false }: TaskFormPr
                 Next
               </Button>
             ) : (
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setCurrentStep(1)}
-                >
-                  Edit
-                </Button>
-                <Button type="submit" disabled={!formData.title}>
-                  {task ? "Save Changes" : "Create Task"}
-                </Button>
-              </div>
+              <Button type="submit" disabled={!formData.title}>
+                {task ? "Save Changes" : "Create Task"}
+              </Button>
             )}
           </div>
         </form>

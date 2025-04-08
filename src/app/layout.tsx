@@ -26,7 +26,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="min-h-screen relative">
+          <div className="min-h-screen">
             <main className="min-h-screen bg-background">
               {children}
             </main>

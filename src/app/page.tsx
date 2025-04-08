@@ -9,6 +9,7 @@ import { useEffect, useState } from "react"
 import { QuickTaskInput } from "@/components/QuickTaskInput"
 import { TaskOverviewCard } from "@/components/TaskOverviewCard"
 import { TaskStats } from "@/types/task"
+import { DashboardShell } from "@/components/DashboardShell"
 
 export default function Home() {
   const [taskStats, setTaskStats] = useState<TaskStats | null>(null)
@@ -36,40 +37,42 @@ export default function Home() {
   ]
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
-      <header className="flex justify-between items-center">
-        <div>
-          <h1 className="text-4xl font-bold mb-2">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back! Here's your overview</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link href="/tasks" className="inline-flex">
-            <Button className="h-10">View Tasks</Button>
-          </Link>
-          <Button variant="outline" className="h-10" disabled>
-            View Habits
-          </Button>
-        </div>
-      </header>
+    <DashboardShell>
+      <div className="space-y-6">
+        <header className="flex justify-between items-center">
+          <div>
+            <h1 className="text-4xl font-bold mb-2">Dashboard</h1>
+            <p className="text-muted-foreground">Welcome back! Here's your overview</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link href="/tasks" className="inline-flex">
+              <Button className="h-10">View Tasks</Button>
+            </Link>
+            <Button variant="outline" className="h-10" disabled>
+              View Habits
+            </Button>
+          </div>
+        </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="md:col-span-2 lg:col-span-1">
-          <QuickTaskInput 
-            onTaskAdded={handleTaskAdded} 
-            placeholder="Add a quick task..." 
-          />
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="md:col-span-1">
+            <TaskOverviewCard onNeedsRefresh={fetchStats} />
+          </div>
 
-        <div className="lg:col-span-1">
-          <TaskOverviewCard onNeedsRefresh={refreshCounter} />
-        </div>
+          <div className="md:col-span-1">
+            <StatsCard title="Habits Progress" stats={habitStats} />
+          </div>
 
-        <div className="lg:col-span-1">
-          <StatsCard title="Habits Progress" stats={habitStats} />
+          <div className="md:col-span-2">
+            <ActivityGrid />
+          </div>
         </div>
       </div>
-
-      <ActivityGrid />
-    </div>
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-xl bg-background p-4 z-50 rounded-md shadow-lg transition-transform duration-100 animate-float">
+        <QuickTaskInput 
+          onTaskAdded={handleTaskAdded} 
+        />
+      </div>
+    </DashboardShell>
   )
 }
