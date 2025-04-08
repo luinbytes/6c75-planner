@@ -21,6 +21,7 @@ import { TaskModeToggle } from "@/components/TaskModeToggle"
 import { Checkbox } from "@/components/ui/checkbox"
 import { toast } from "sonner"
 import { GlobalToggles } from "@/components/GlobalToggles"
+import { TaskSkeleton, TaskEmpty } from "@/components/ui/task-skeleton"
 
 const priorityColors = {
   low: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
@@ -172,14 +173,7 @@ export function TaskList() {
           <h2 className="text-xl font-medium">Task List</h2>
           <Button variant="outline" disabled>Add Task</Button>
         </div>
-        <div className="grid gap-4">
-          {[...Array(3)].map((_, i) => (
-            <Card key={i} className="p-4 animate-pulse">
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-              <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-            </Card>
-          ))}
-        </div>
+        <TaskSkeleton />
       </div>
     )
   }
@@ -240,74 +234,78 @@ export function TaskList() {
       </div>
 
       <div className="space-y-2">
-        {filteredAndSortedTasks.map(task => (
-          <Card key={task.id} className="p-4">
-            <div className="flex justify-between items-start gap-4">
-              <div className="flex-1 space-y-2">
-                <div className="flex items-start gap-3">
-                  {isSimple ? (
-                    <Checkbox
-                      checked={task.status === "completed"}
-                      onCheckedChange={(checked) => handleSimpleToggle(task.id, checked as boolean)}
-                    />
-                  ) : (
-                    <Select
-                      value={task.status}
-                      onValueChange={(value: Task["status"]) => handleStatusChange(task.id, value)}
-                    >
-                      <SelectTrigger className="w-[140px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="todo">To Do</SelectItem>
-                        <SelectItem value="in-progress">In Progress</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
-                  <div>
-                    <h3 className={`font-medium ${task.status === "completed" ? "line-through text-muted-foreground" : ""}`}>
-                      {task.title}
-                    </h3>
-                    {task.description && (
-                      <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
+        {filteredAndSortedTasks.length === 0 ? (
+          <TaskEmpty />
+        ) : (
+          filteredAndSortedTasks.map(task => (
+            <Card key={task.id} className="p-4">
+              <div className="flex justify-between items-start gap-4">
+                <div className="flex-1 space-y-2">
+                  <div className="flex items-start gap-3">
+                    {isSimple ? (
+                      <Checkbox
+                        checked={task.status === "completed"}
+                        onCheckedChange={(checked) => handleSimpleToggle(task.id, checked as boolean)}
+                      />
+                    ) : (
+                      <Select
+                        value={task.status}
+                        onValueChange={(value: Task["status"]) => handleStatusChange(task.id, value)}
+                      >
+                        <SelectTrigger className="w-[140px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="todo">To Do</SelectItem>
+                          <SelectItem value="in-progress">In Progress</SelectItem>
+                          <SelectItem value="completed">Completed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                    <div>
+                      <h3 className={`font-medium ${task.status === "completed" ? "line-through text-muted-foreground" : ""}`}>
+                        {task.title}
+                      </h3>
+                      {task.description && (
+                        <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline">
+                      Due: {task.dueDate ? 
+                        format(new Date(task.dueDate), "MMM d, yyyy") + 
+                        (task.time ? ` at ${String(task.time.hour).padStart(2, '0')}:${String(task.time.minute).padStart(2, '0')}` : '') : 
+                        "No date set"}
+                    </Badge>
+                    <Badge className={priorityVariants[task.priority]}>
+                      {task.priority}
+                    </Badge>
+                    {task.estimatedTime && (
+                      <Badge variant="outline">
+                        Est. {task.estimatedTime} mins
+                      </Badge>
                     )}
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline">
-                    Due: {task.dueDate ? 
-                      format(new Date(task.dueDate), "MMM d, yyyy") + 
-                      (task.time ? ` at ${String(task.time.hour).padStart(2, '0')}:${String(task.time.minute).padStart(2, '0')}` : '') : 
-                      "No date set"}
-                  </Badge>
-                  <Badge className={priorityVariants[task.priority]}>
-                    {task.priority}
-                  </Badge>
-                  {task.estimatedTime && (
-                    <Badge variant="outline">
-                      Est. {task.estimatedTime} mins
-                    </Badge>
-                  )}
+                <div className="flex gap-2 shrink-0">
+                  <TaskForm
+                    task={task}
+                    onSuccess={fetchTasks}
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDelete(task.id)}
+                    className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </Button>
                 </div>
               </div>
-              <div className="flex gap-2 shrink-0">
-                <TaskForm
-                  task={task}
-                  onSuccess={fetchTasks}
-                />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleDelete(task.id)}
-                  className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
-                >
-                  <Trash2 className="h-5 w-5" />
-                </Button>
-              </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          ))
+        )}
       </div>
     </div>
   )
