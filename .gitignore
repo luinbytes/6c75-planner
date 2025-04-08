@@ -1,33 +1,77 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
-/node_modules
-/.pnp
+# Dependencies
+node_modules/
+.pnp/
 .pnp.js
+.npm/
+.yarn-integrity
 package-lock.json
 
-# testing
-/coverage
+# Testing
+coverage/
+
+# Next.js
+.next/
+out/
+build/
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+logs/
+*.log
+
+# IDE and Editor
+.idea/
+.vscode/
+.vscode-test/
+.cursor/
+*.swp
+*.swo
+*~
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Build and Cache
+.cache/
+.parcel-cache/
+*.tsbuildinfo
+.eslintcache
+.stylelintcache
+
+# Misc
+*.pem
+*.tgz
+.node_repl_history
+
+# vercel
+.vercel
 
 # next.js
-/.next/
-/out/
-/build
 .next
-
-# production
-/build
+out
 
 # misc
 .DS_Store
 *.pem
 Thumbs.db
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
 
 # local env files
 .env*.local
@@ -80,23 +124,9 @@ logs
 # Output of 'npm pack'
 *.tgz
 
-# Yarn Integrity file
-.yarn-integrity
-
-# dotenv environment variable files
-.env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
-
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
-
-# Next.js build output
-.next
-out
 
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test

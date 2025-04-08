@@ -7,14 +7,18 @@ export interface Task {
   title: string
   description?: string
   dueDate?: Date
+  time?: {
+    hour: number
+    minute: number
+  }
   priority: Priority
   status: TaskStatus
+  estimatedTime?: number
   createdAt: Date
   updatedAt: Date
   tags?: string[]
   subtasks?: Subtask[]
   notes?: string
-  estimatedTime?: number // in minutes
   actualTime?: number // in minutes
   recurring?: {
     frequency: "daily" | "weekly" | "monthly"

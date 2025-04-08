@@ -64,31 +64,41 @@ export function loadTasks(): Task[] {
   }))
 }
 
-export function addTask(task: Omit<Task, "id" | "createdAt" | "updatedAt">): Task {
-  const tasks = loadTasks()
+export const getTasks = loadTasks
+
+export async function addTask(task: Omit<Task, "id" | "createdAt" | "updatedAt">): Promise<Task> {
+  const tasks = await loadTasks()
   const now = new Date()
+  
   const newTask: Task = {
     ...task,
-    id: Math.random().toString(36).substr(2, 9),
+    id: crypto.randomUUID(),
+    status: task.status || "todo", // Ensure todo is the default status
     createdAt: now,
     updatedAt: now,
   }
+
   tasks.push(newTask)
-  saveTasks(tasks)
+  await saveTasks(tasks)
   return newTask
 }
 
-export function updateTask(task: Task): Task {
-  const tasks = loadTasks()
-  const index = tasks.findIndex((t) => t.id === task.id)
-  if (index === -1) throw new Error("Task not found")
+export async function updateTask(taskId: string, updates: Partial<Omit<Task, "id" | "createdAt" | "updatedAt">>) {
+  const tasks = await loadTasks()
+  const taskIndex = tasks.findIndex(task => task.id === taskId)
   
-  const updatedTask = {
-    ...task,
-    updatedAt: new Date(),
+  if (taskIndex === -1) {
+    throw new Error("Task not found")
   }
-  tasks[index] = updatedTask
-  saveTasks(tasks)
+
+  const updatedTask = {
+    ...tasks[taskIndex],
+    ...updates,
+    updatedAt: new Date()
+  }
+
+  tasks[taskIndex] = updatedTask
+  await saveTasks(tasks)
   return updatedTask
 }
 

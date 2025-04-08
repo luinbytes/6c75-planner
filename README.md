@@ -1,99 +1,104 @@
-# Planner Web Application
+# 📝 6c75 Planner
 
-A modern, user-friendly planner application built with Next.js and shadcn/ui. Manage your tasks, routines, and habits with an elegant and responsive interface.
+A modern, minimalist task planner built with Next.js and shadcn/ui. Manage your tasks with an elegant and responsive interface.
 
-## Features
+## ✨ Features
 
-### Task Management
-- Create, edit, and delete tasks
-- Quick task completion with one click
-- Priority levels (Low, Medium, High, Urgent)
-- Task statuses (Todo, In Progress, Completed, Archived)
-- Due dates with calendar selection
-- Time estimation
-- Task descriptions and notes
-- Visual indicators for task status and priority
+### 🎯 Task Management
+- ⚡ Quick task input with natural language processing
+- ✅ One-click task completion
+- 🔄 Task statuses (Todo, In Progress, Completed, Archived)
+- 🚨 Priority levels with auto-urgency calculation
+- 📅 Due dates with calendar selection
+- ⏱️ Time estimation
+- 📝 Rich task descriptions
+- 🎨 Visual status indicators
 
-### User Interface
-- Clean and modern design
-- Dark mode support
-- Responsive layout
-- Loading states and animations
-- Intuitive navigation
-- Elegant form dialogs
+### 🎨 User Interface
+- 🌓 Dark/Light mode support
+- 📱 Fully responsive design
+- ✨ Smooth animations and transitions
+- 🔔 Toast notifications
+- 🔍 Advanced filtering and sorting
+- 🎯 Simple/Advanced mode toggle
+- 👀 Task preview before creation
 
-## Tech Stack
+## 🛠️ Tech Stack
 
-- **Framework**: Next.js 14
-- **UI Components**: shadcn/ui
-- **Styling**: Tailwind CSS
-- **Icons**: Lucide Icons
-- **Date Handling**: date-fns
-- **State Management**: React Hooks
-- **Data Persistence**: Local Storage
+- **Framework**: [Next.js 14](https://nextjs.org/)
+- **UI Components**: [shadcn/ui](https://ui.shadcn.com/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Icons**: [Lucide Icons](https://lucide.dev/)
+- **Date Handling**: [date-fns](https://date-fns.org/)
+- **Animations**: [Framer Motion](https://www.framer.com/motion/)
+- **Notifications**: [Sonner](https://sonner.emilkowal.ski/)
+- **UI Primitives**: [Radix UI](https://www.radix-ui.com/)
 
-## Getting Started
+## 🚀 Getting Started
 
-1. **Install Dependencies**
+1. **Clone and Install**
    ```bash
+   git clone https://github.com/luinbytes/6c75-planner.git
+   cd 6c75-planner
    npm install
    ```
 
-2. **Run Development Server**
+2. **Start Development Server**
    ```bash
    npm run dev
    ```
 
 3. **Open Application**
-   Navigate to `http://localhost:3000` in your browser
+   Visit `http://localhost:3000` in your browser
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 src/
+├── app/                # Next.js app router pages
 ├── components/         # React components
-│   ├── TaskList.tsx   # Task list display
-│   ├── TaskForm.tsx   # Task creation/editing form
-│   └── ui/            # shadcn/ui components
-├── lib/
-│   └── storage.ts     # Local storage utilities
-├── types/
-│   └── task.ts        # TypeScript interfaces
-└── app/               # Next.js pages
+│   ├── ui/            # shadcn/ui components
+│   ├── TaskList.tsx   # Task list with filters
+│   ├── TaskForm.tsx   # Task creation/editing
+│   └── QuickTaskInput.tsx # Natural language input
+├── lib/               # Utilities and helpers
+└── types/             # TypeScript definitions
 ```
 
-## Usage
+## 💡 Usage Guide
 
-### Managing Tasks
-- Click "Add Task" to create a new task
-- Use the checkmark button to toggle task completion
-- Edit tasks using the pencil icon
-- Delete tasks using the trash icon
-- View task details including priority, status, and due date
+### 📋 Task Management
+- Type naturally in the quick input bar (e.g., "Finish report by Friday 5pm")
+- Use "New Task" button for detailed task creation
+- Toggle between simple and advanced modes
+- Enable auto-urgency for smart priority setting
+- Filter and sort tasks by various criteria
+- Use checkboxes for quick completion
 
-### Navigation
-- Use the back arrow to return to the dashboard
-- Access different sections from the main navigation
+### ⚙️ Settings
+- Toggle dark/light mode
+- Switch between simple and advanced views
+- Configure auto-urgency preferences
 
-## Development
+## 🛠️ Development
 
 ### Prerequisites
 - Node.js 18+
 - npm or yarn
 
-### Setup
-1. Clone the repository
+### Setup Steps
+1. Clone repository
 2. Install dependencies: `npm install`
-3. Run development server: `npm run dev`
+3. Start development: `npm run dev`
 
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
+2. Create feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'feat: add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
 5. Open a pull request
 
-## License
+## 📄 License
 
 MIT License - feel free to use this project for personal or commercial purposes.

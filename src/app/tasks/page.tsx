@@ -1,14 +1,32 @@
-import React from "react"
+"use client"
+
+import { DashboardHeader } from "@/components/DashboardHeader"
+import { DashboardShell } from "@/components/DashboardShell"
+import { QuickTaskInput } from "@/components/QuickTaskInput"
 import { TaskList } from "@/components/TaskList"
+import React from "react"
+import { Button } from "@/components/ui/button"
+import { ArrowLeft } from "lucide-react"
+import Link from "next/link"
 
 export default function TasksPage() {
   return (
-    <div className="container mx-auto p-4">
-      <header className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Tasks</h1>
-        <p className="text-muted-foreground">Manage your daily tasks</p>
-      </header>
-      <TaskList />
-    </div>
+    <DashboardShell>
+      <div className="flex items-center gap-4 mb-8">
+        <Link href="/">
+          <Button variant="ghost" size="icon">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        </Link>
+        <h1 className="text-2xl font-semibold">Task Manager</h1>
+      </div>
+      <div className="grid gap-8">
+        <QuickTaskInput 
+          onTaskAdded={() => window.location.reload()}
+          placeholder="Add a task... (e.g. 'Finish project report by Friday')"
+        />
+        <TaskList />
+      </div>
+    </DashboardShell>
   )
 } 
