@@ -2,6 +2,14 @@ export type Priority = "low" | "medium" | "high" | "urgent"
 
 export type TaskStatus = "todo" | "in-progress" | "completed" | "archived"
 
+export interface TaskStats {
+  completedToday: number
+  inProgress: number
+  overdue: number
+  total: number
+  completedTodayChange: string // Note: Calculation logic might be needed elsewhere
+}
+
 export interface Task {
   id: string
   title: string
