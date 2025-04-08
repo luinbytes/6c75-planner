@@ -33,6 +33,7 @@ A modern, minimalist task planner built with Next.js and shadcn/ui. Manage your 
 - **Animations**: [Framer Motion](https://www.framer.com/motion/)
 - **Notifications**: [Sonner](https://sonner.emilkowal.ski/)
 - **UI Primitives**: [Radix UI](https://www.radix-ui.com/)
+- **AI Integration**: [OpenRouter](https://openrouter.ai/) for natural language processing
 
 ## 🚀 Getting Started
 
@@ -43,12 +44,28 @@ A modern, minimalist task planner built with Next.js and shadcn/ui. Manage your 
    npm install
    ```
 
-2. **Start Development Server**
+2. **Environment Setup**
+   1. Sign up for an OpenRouter account at [openrouter.ai](https://openrouter.ai/)
+   2. Create a new API key in your OpenRouter dashboard
+   3. Create a `.env.local` file in the root directory:
+      ```bash
+      # Required: OpenRouter API key for natural language task parsing
+      # Get your key at: https://openrouter.ai/keys
+      OPENROUTER_API_KEY=your_api_key_here
+      
+      # Optional: Your app's URL (defaults to localhost in development)
+      # Only change this if deploying to production
+      NEXT_PUBLIC_APP_URL=http://localhost:3000
+      ```
+   4. The app uses the Mistral-7B model by default. You can check your OpenRouter 
+      dashboard to ensure you have access to this model.
+
+3. **Start Development Server**
    ```bash
    npm run dev
    ```
 
-3. **Open Application**
+4. **Open Application**
    Visit `http://localhost:3000` in your browser
 
 ## 📁 Project Structure
@@ -80,16 +97,26 @@ src/
 - Switch between simple and advanced views
 - Configure auto-urgency preferences
 
+### 🤖 Natural Language Processing
+The app uses OpenRouter's AI capabilities to parse natural language into structured task data. This allows you to:
+- Create tasks using everyday language
+- Automatically detect due dates and times
+- Infer task priorities
+- Extract task descriptions
+- Estimate task duration
+
 ## 🛠️ Development
 
 ### Prerequisites
 - Node.js 18+
 - npm or yarn
+- OpenRouter API key
 
 ### Setup Steps
 1. Clone repository
 2. Install dependencies: `npm install`
-3. Start development: `npm run dev`
+3. Set up environment variables
+4. Start development: `npm run dev`
 
 ## 🤝 Contributing
 
