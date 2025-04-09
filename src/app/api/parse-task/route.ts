@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { format } from "date-fns"
+import { format, addDays, nextTuesday as calculateNextTuesday } from "date-fns"
 import { getTasks } from "@/lib/storage"
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY
@@ -38,6 +38,22 @@ export async function POST(req: Request) {
     const currentTime = now.toLocaleTimeString('en-US', { hour12: false })
     const tasks = await getTasks()
 
+    const nextTuesdayDate = calculateNextTuesday(now)
+    const nextTuesdayDateString = format(nextTuesdayDate, 'yyyy-MM-dd')
+    const tomorrowDate = addDays(now, 1)
+    const tomorrowDateString = format(tomorrowDate, 'yyyy-MM-dd')
+    const endOfMonthDate = format(new Date(now.getFullYear(), now.getMonth() + 1, 0), 'yyyy-MM-dd')
+    const in3DaysDate = format(addDays(now, 3), 'yyyy-MM-dd')
+    const nextWeekDate = format(addDays(now, 7), 'yyyy-MM-dd')
+    const in2WeeksDate = format(addDays(now, 14), 'yyyy-MM-dd')
+    const nextMonthDate = new Date(now)
+    nextMonthDate.setMonth(nextMonthDate.getMonth() + 1)
+    if (nextMonthDate.getDate() < now.getDate()) {
+      nextMonthDate.setDate(0)
+    }
+    const nextMonthDateString = format(nextMonthDate, 'yyyy-MM-dd')
+    const startOfMonthDate = format(new Date(now.getFullYear(), now.getMonth(), 1), 'yyyy-MM-dd')
+
     const response = await fetch(OPENROUTER_URL, {
       method: "POST",
       headers: {
@@ -52,12 +68,13 @@ export async function POST(req: Request) {
         messages: [
           {
             role: "system",
-            content: `You are an AI task parser for a task management application. Your job is to convert natural language task descriptions into structured data. The current date is ${currentDate} and the current time is ${currentTime}.
+            content: `ATTENTION: You are an AI task parser. Your ONLY job is to convert the user's text into a structured JSON object based *strictly* on the rules below. Do NOT add any commentary or explanation.
 
-Current Tasks:
-${tasks.map(t => `- ${t.title} (${t.status}, ${t.priority} priority${t.dueDate ? `, due ${t.dueDate}` : ''})`).join('\n')}
+CRITICAL CONTEXT:
+- Today's Date: ${currentDate} (${format(now, 'EEEE, MMMM d, yyyy')})
+- Current Time: ${currentTime} (24-hour format, ${Intl.DateTimeFormat().resolvedOptions().timeZone} timezone)
 
-Your ONLY role is to parse the user's input and return a JSON object with the following fields:
+Your Task: Parse the user's input into this JSON format:
 {
   "title": "Brief, clear task title",
   "description": "Additional context or details",
@@ -67,49 +84,45 @@ Your ONLY role is to parse the user's input and return a JSON object with the fo
   "estimatedTime": number (in minutes)
 }
 
-Task title rules:
-- Use natural, human-like language
-- NEVER use phrases like "Task involves", "Task is about", "Task requires", etc.
-- NEVER use passive voice
-- Keep titles concise but descriptive
-- Use action verbs
-- Make titles sound like something a human would write
+Current Tasks List (for context):
+${tasks.map(t => `- ${t.title} (${t.status}, ${t.priority} priority${t.dueDate ? `, due ${t.dueDate}` : ''})`).join('\n')}
 
-Time interpretation rules:
-- "morning" = 09:00
-- "afternoon" = 14:00
-- "evening" = 18:00
-- "tonight" = 20:00
-- "noon" = 12:00
-- "midnight" = 00:00
+--- DATE INTERPRETATION RULES ---
+MUST FOLLOW THESE RULES EXACTLY. DEVIATION IS NOT ALLOWED.
 
-Date interpretation rules:
-- Use the current date (${currentDate}) as reference for relative dates
-- "tomorrow" = next day from current date
-- "next [day]" = next occurrence of that day after current date
-- "this [day]" = this week's occurrence of that day
-- If date is past, assume next occurrence
+**MOST IMPORTANT RULE:** If an explicit example date string is given below for a term (like 'next Tuesday' -> '${nextTuesdayDateString}'), you MUST use that EXACT string value for the dueDate. DO NOT PERFORM YOUR OWN CALCULATION FOR THESE TERMS.
 
-Priority inference rules:
-- "urgent" = mentioned urgency, due very soon, or critical importance
-- "high" = due within 2-3 days or mentioned importance
-- "medium" = default if no urgency indicated
-- "low" = explicitly mentioned as non-urgent or far future date
+1.  **Current Date is Reference:** Always use ${currentDate} (${format(now, 'EEEE')}) as the reference point for any calculations YOU PERFORM.
+2.  **"Today"**: Use ${currentDate}.
+3.  **"Tomorrow"**: Use ${tomorrowDateString}. (This is an example, MUST use this value).
+4.  **Specific Dates**: If a full date is given (e.g., "April 13th 2025"), use that EXACT date string (e.g., "2025-04-13").
+5.  **"Next [Day]" (e.g., "next Tuesday")**:
+    - **MANDATORY:** Use the exact example date string provided. For "next Tuesday", you MUST use: ${nextTuesdayDateString}.
+    - DO NOT calculate this yourself. Use the provided example string.
+6.  **"This [Day]" (e.g., "this Friday")**:
+    - Calculate based on the current week (starting Monday), relative to ${currentDate}.
+    - If that [Day] has passed this week, use next week's date.
+    - Calculate this ONLY IF no explicit example is provided.
+7.  **"In X days/weeks/months"**: Calculate by adding the duration to ${currentDate}. (e.g., "in 3 days" use ${in3DaysDate}, "in 2 weeks" use ${in2WeeksDate}). You MUST use these exact example values if the input matches.
+8.  **Ambiguous Terms**:
+    - For terms like "next week", "next month", "end of month", "start of month", use the EXACT example date strings provided: 
+      - "next week" -> ${nextWeekDate}
+      - "next month" -> ${nextMonthDateString}
+      - "end of month" -> ${endOfMonthDate}
+      - "start of month" -> ${startOfMonthDate}
+    - DO NOT calculate these yourself. Use the provided example strings.
+9.  **Format**: ALL dates in the output JSON MUST be in YYYY-MM-DD format.
+10. **Validation**: Before outputting, double-check: Does the final dueDate string logically follow the user's request based on the ${currentDate} context? Is it the exact string from an example if applicable?
 
-Duration interpretation:
-- Convert all durations to minutes
-- "hour" = 60 minutes
-- "day" = 480 minutes (8 hour workday)
-- If no duration mentioned but task type is known, make reasonable estimate
+--- OTHER RULES ---
+- **Title**: Use clear, natural action verbs. No "Task involves...".
+- **Time**: Use 24-hr format. "morning"=09:00, "afternoon"=14:00, "evening"=18:00, "tonight"=20:00, "noon"=12:00.
+- **Priority**: Infer based on urgency/keywords. Default is "medium".
+- **Duration**: Convert estimates to minutes ("hour"=60, "day"=480).
 
-IMPORTANT: 
-1. Respond ONLY with the JSON object
-2. All dates must be in ISO format (YYYY-MM-DD)
-3. All times must be in 24-hour format
-4. Do not include any explanation or additional text
-5. Ensure all JSON is valid and properly formatted
-6. Do not include any markdown formatting or code blocks
-7. The response should be pure JSON text`
+--- FINAL INSTRUCTION ---
+Respond ONLY with the valid JSON object. No extra text, explanation, or markdown.
+`
           },
           {
             role: "user",
@@ -163,8 +176,8 @@ IMPORTANT:
       
       // Pre-process the JSON string to handle numbers with leading zeros
       const processedStr = jsonStr.replace(
-        /"(hour|minute)":\s*0*(\d+)/g,
-        (_, key, num) => `"${key}":${parseInt(num, 10)}`
+        /"(hour|minute)":\s*0*(\d+)/g, 
+        (_: string, key: string, num: string): string => `"${key}":${parseInt(num, 10)}`
       )
       
       let taskData
